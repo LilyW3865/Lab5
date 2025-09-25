@@ -1,7 +1,5 @@
-using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -23,16 +21,17 @@ public class Avoider : MonoBehaviour
     private float size_y;
     private float cellSize;
 
-    public IEnumerator avoidanceTryAgain()
-    {
-        yield return new WaitForSeconds(5f);
-
-    }
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         poissonDiscSampler = GetComponent<PoissonDiscSampler>();
         List<int> hidingSpots = new List<int>();
+
+        if (agent != null)
+        {
+            agent.speed = speed;
+        }
+           
     }
 
     // Update is called once per frame
@@ -43,28 +42,27 @@ public class Avoider : MonoBehaviour
             Debug.LogWarning("You NEED to make the object a NavMesh Agent and bake a NavMesh");
         }
 
-        while(true)
+        // Always look at avoidee
+        transform.LookAt(new Vector3(avoidee.position.x, transform.position.y, avoidee.position.z));
+
+
+        if (canAvoideeSeeMe)
         {
-            if(canAvoideeSeeMe)
+            if (isThereAPlaceToRun)
             {
-               if(isThereAPlaceToRun)
-                {
-                    FindASpot();
-                }
-                else
-                {
-                    StartCoroutine(avoidanceTryAgain());
-                    FindASpot();
-                }
+                FindASpot();
             }
             else
             {
                 StartCoroutine(avoidanceTryAgain());
-
+                FindASpot();
             }
+        }
+        else
+        {
+            StartCoroutine(avoidanceTryAgain());
 
         }
-        
     }
 
     public void FindASpot()
@@ -91,7 +89,7 @@ public class Avoider : MonoBehaviour
         }
     }
 
-    public void CheckVisibilityToHindingPoint()
+    public void CheckVisibility()
     {
         Ray rayToPoint = new Ray(transform.position, transform.forward);
         RaycastHit hitVisibility;
@@ -104,5 +102,19 @@ public class Avoider : MonoBehaviour
         {
             Debug.Log("The point is not visable");
         }
+    }
+
+    void OnDrawGizmos()
+    {
+        if (!visibleGizmos) return;
+
+        // Draw the avoidance range as a circle
+        Gizmos.color = Color.red;
+    }
+
+    public IEnumerator avoidanceTryAgain()
+    {
+        yield return new WaitForSeconds(5f);
+
     }
 }
