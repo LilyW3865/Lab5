@@ -412,6 +412,7 @@ GameObject:
   - component: {fileID: 281803373}
   - component: {fileID: 281803377}
   - component: {fileID: 281803379}
+  - component: {fileID: 281803380}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -543,11 +544,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 281803372}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 537717089c98b4b4cbe70383b936faee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Avoider
+  hidingSpots: []
   agent: {fileID: 281803377}
   avoidee: {fileID: 1052603253}
   avoidanceRange: 10
@@ -580,6 +582,23 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &281803380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 281803372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 007fe9637f615ae429b46c8baff044da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlanB
+  agent: {fileID: 281803377}
+  avoidee: {fileID: 1052603253}
+  avoidanceRange: 10
+  speed: 2
+  visibleGizmos: 1
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,7 +5,8 @@ using UnityEngine.AI;
 
 public class Avoider : MonoBehaviour
 {
-    PoissonDiscSampler poissonDiscSampler;
+   // PoissonDiscSampler poissonDiscSampler;
+    public List<Vector3> hidingSpots = new List<Vector3>();
 
     public NavMeshAgent agent;
     public Transform avoidee;
@@ -24,10 +25,8 @@ public class Avoider : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        poissonDiscSampler = GetComponent<PoissonDiscSampler>();
-        List<int> hidingSpots = new List<int>();
 
-        if (agent != null)
+        if (agent == null)
         {
             agent.speed = speed;
         }
@@ -37,7 +36,7 @@ public class Avoider : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(agent != null)
+        if(agent == null)
         {
             Debug.LogWarning("You NEED to make the object a NavMesh Agent and bake a NavMesh");
         }
@@ -45,46 +44,48 @@ public class Avoider : MonoBehaviour
         // Always look at avoidee
         transform.LookAt(new Vector3(avoidee.position.x, transform.position.y, avoidee.position.z));
 
+        float position = Vector3.Distance(transform.position, avoidee.position);
 
         if (canAvoideeSeeMe)
         {
             if (isThereAPlaceToRun)
             {
-                FindASpot();
+                if (position < avoidanceRange)
+                {
+                    FindASpot();
+                    //set agent destination 
+                }
             }
-            else
+           /* else
             {
                 StartCoroutine(avoidanceTryAgain());
-                FindASpot();
-            }
+               // FindASpot();
+                //set agent destination
+            }*/
         }
         else
         {
             StartCoroutine(avoidanceTryAgain());
-
         }
     }
 
     public void FindASpot()
     {
         var sampler = new PoissonDiscSampler(size_x, size_y, cellSize);
-        //Create a collection to store candidate hiding spots
-
-        /*foreach ()
-        {
-            visualize a line to it
-
-        }*/
 
         foreach (var point in sampler.Samples())
         {
-            if(canAvoideeSeeMe)
+           // Vector3 position = new Vector3(point.x - size_x / 2f, 0, point.y - size_y / 2f);
+            if (canAvoideeSeeMe)
             {
-                    //ignore point
+                //ignore point
+                //Gizmo
             }
             else
             {
-                    //add point to candidate list
+                hidingSpots.Add(point);
+                //add point to candidate list
+                //Gizmo
             }
         }
     }
@@ -118,3 +119,5 @@ public class Avoider : MonoBehaviour
 
     }
 }
+
+
