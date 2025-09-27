@@ -409,7 +409,7 @@ GameObject:
   - component: {fileID: 281803375}
   - component: {fileID: 281803374}
   - component: {fileID: 281803373}
-  - component: {fileID: 281803380}
+  - component: {fileID: 281803381}
   - component: {fileID: 281803377}
   - component: {fileID: 281803379}
   m_Layer: 0
@@ -523,7 +523,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 10
+  m_Speed: 2
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
@@ -562,7 +562,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &281803380
+--- !u!114 &281803381
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -571,13 +571,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 281803372}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 007fe9637f615ae429b46c8baff044da, type: 3}
+  m_Script: {fileID: 11500000, guid: 537717089c98b4b4cbe70383b936faee, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlanB
+  m_EditorClassIdentifier: Assembly-CSharp::Avoider
   agent: {fileID: 281803377}
   avoidee: {fileID: 1052603253}
   avoidanceRange: 10
-  speed: 10
+  speed: 2
   visibleGizmos: 1
 --- !u!1 &330585543
 GameObject:
@@ -1000,7 +1000,7 @@ Transform:
   m_GameObject: {fileID: 1052603249}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.98, y: 1, z: 18.11}
+  m_LocalPosition: {x: 1.98, y: 1, z: 13.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

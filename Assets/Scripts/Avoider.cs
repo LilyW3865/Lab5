@@ -1,123 +1,143 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+[RequireComponent(typeof(NavMeshAgent))]
 public class Avoider : MonoBehaviour
 {
-   // PoissonDiscSampler poissonDiscSampler;
-    public List<Vector3> hidingSpots = new List<Vector3>();
-
     public NavMeshAgent agent;
     public Transform avoidee;
+    //public Transform wall;
+    //public Transform wall2;
 
     public float avoidanceRange;
     public float speed;
+    public bool visibleGizmos = true;
 
-    public bool visibleGizmos;
-    private bool canAvoideeSeeMe;
-    private bool isThereAPlaceToRun;
+    private float size_x = 10f;
+    private float size_y = 10f;
+    private float cellSize = 20f;
 
-    private float size_x;
-    private float size_y;
-    private float cellSize;
+    private List<Vector3> candidateSpots = new List<Vector3>();
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-
-        if (agent == null)
-        {
-            agent.speed = speed;
-        }
-           
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if(agent == null)
+        if (avoidee == null) return;
+
+        if (agent == null)
         {
             Debug.LogWarning("You NEED to make the object a NavMesh Agent and bake a NavMesh");
         }
 
-        // Always look at avoidee
-        transform.LookAt(new Vector3(avoidee.position.x, transform.position.y, avoidee.position.z));
+        float distance = Vector3.Distance(transform.position, avoidee.position);
 
-        float position = Vector3.Distance(transform.position, avoidee.position);
-
-        if (canAvoideeSeeMe)
+        // If player is close, try to escape
+        if (distance < avoidanceRange)
         {
-            if (isThereAPlaceToRun)
-            {
-                if (position < avoidanceRange)
-                {
-                    FindASpot();
-                    //set agent destination 
-                }
-            }
-           /* else
-            {
-                StartCoroutine(avoidanceTryAgain());
-               // FindASpot();
-                //set agent destination
-            }*/
-        }
-        else
-        {
-            StartCoroutine(avoidanceTryAgain());
+            FindASpot();
         }
     }
 
+    void OnValidate()
+    {
+        if (avoidanceRange < 0)
+        {
+            avoidanceRange = 0;
+        }
+        agent.speed = speed;
+    }
+
+    // Find a hiding spot using Poisson-disc sampling
     public void FindASpot()
     {
+        candidateSpots.Clear();
         var sampler = new PoissonDiscSampler(size_x, size_y, cellSize);
 
         foreach (var point in sampler.Samples())
         {
-           // Vector3 position = new Vector3(point.x - size_x / 2f, 0, point.y - size_y / 2f);
-            if (canAvoideeSeeMe)
+            // Convert Poisson point into world position centered around Avoider
+            Vector3 poissonPoint = transform.position + new Vector3(point.x - size_x / 2f, 0, point.y - size_y / 2f);
+
+            // Check if the spot is on the NavMesh and reachable
+            NavMeshPath path = new NavMeshPath();
+            if (!agent.CalculatePath(poissonPoint, path) || path.status != NavMeshPathStatus.PathComplete)
             {
-                //ignore point
-                //Gizmo
+                if (visibleGizmos)
+                    Debug.DrawLine(avoidee.position, poissonPoint, Color.gray, 1f); // unreachable point
+                continue; // skip this point
             }
-            else
+
+            // Check visibility (if avoidee can see it, it's not a good hiding spot)
+            if (!CheckVisibility(poissonPoint))
             {
-                hidingSpots.Add(point);
-                //add point to candidate list
-                //Gizmo
+                candidateSpots.Add(poissonPoint);
+
+                if (visibleGizmos)
+                    Debug.DrawLine(avoidee.position, poissonPoint, Color.green, 1f);
+            }
+            else if (visibleGizmos)
+            {
+                Debug.DrawLine(avoidee.position, poissonPoint, Color.red, 1f);
+            }
+        }
+
+        if (candidateSpots.Count > 0)
+        {
+            // Pick the closest valid spot
+            Vector3 closest = candidateSpots[0];
+            float minDist = Vector3.Distance(transform.position, closest);
+
+            foreach (var spot in candidateSpots)
+            {
+                float d = Vector3.Distance(transform.position, spot);
+                if (d < minDist)
+                {
+                    minDist = d;
+                    closest = spot;
+                }
+            }
+
+            if (Vector3.Distance(transform.position, closest) > agent.stoppingDistance + 0.1f)
+            {
+                agent.SetDestination(closest);
             }
         }
     }
 
-    public void CheckVisibility()
+    // Checks if the avoidee can see a given point
+    public bool CheckVisibility(Vector3 point)
     {
-        Ray rayToPoint = new Ray(transform.position, transform.forward);
-        RaycastHit hitVisibility;
+        Vector3 dirToPoint = (point - avoidee.position).normalized;
+        float distToPoint = Vector3.Distance(avoidee.position, point);
 
-        if (Physics.Raycast(rayToPoint, out hitVisibility, 10f))
+        // If the ray hits an obstacle before the point, then the point is hidden
+        if (Physics.Raycast(avoidee.position, dirToPoint, out RaycastHit hit, distToPoint))
         {
-            Debug.Log("Hit: " + hitVisibility.collider.name);
+            if (hit.collider.transform != this.transform && hit.collider.transform != avoidee)
+            {
+                return false;
+            }
+            else if (hit.collider.transform == avoidee)
+            {
+                return false;
+            }
         }
-        else 
-        {
-            Debug.Log("The point is not visable");
-        }
+
+        return true;
     }
 
     void OnDrawGizmos()
     {
-        if (!visibleGizmos) return;
-
-        // Draw the avoidance range as a circle
-        Gizmos.color = Color.red;
-    }
-
-    public IEnumerator avoidanceTryAgain()
-    {
-        yield return new WaitForSeconds(5f);
-
+        if (avoidee != null && visibleGizmos)
+        {
+            // Show the avoidance range
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position, avoidanceRange);
+        }
     }
 }
-
-
