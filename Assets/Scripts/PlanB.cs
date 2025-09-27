@@ -7,9 +7,8 @@ public class PlanB : MonoBehaviour
 {
     public NavMeshAgent agent;
     public Transform avoidee;
-    public Transform wall;
-    public Transform wall2;
-
+    //public Transform wall;
+    //public Transform wall2;
 
     public float avoidanceRange;
     public float speed;
@@ -17,29 +16,23 @@ public class PlanB : MonoBehaviour
 
     private float size_x = 10f;
     private float size_y = 10f;
-    private float cellSize = 10f;
+    private float cellSize = 20f;
 
     private List<Vector3> candidateSpots = new List<Vector3>();
-
+    
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        agent.speed = speed;
     }
 
     void Update()
     {
-        agent.speed = speed;
-
         if (avoidee == null) return;
 
         if (agent == null)
         {
             Debug.LogWarning("You NEED to make the object a NavMesh Agent and bake a NavMesh");
         }
-
-        // Always look at avoidee
-        transform.LookAt(new Vector3(avoidee.position.x, transform.position.y, avoidee.position.z));
 
         float distance = Vector3.Distance(transform.position, avoidee.position);
 
@@ -50,9 +43,16 @@ public class PlanB : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Find a hiding spot using Poisson-disc sampling
-    /// </summary>
+    void OnValidate()
+    {
+        if (avoidanceRange < 0)
+        {
+            avoidanceRange = 0;
+        }
+        agent.speed = speed;
+    }
+
+    // Find a hiding spot using Poisson-disc sampling
     public void FindASpot()
     {
         candidateSpots.Clear();
@@ -63,15 +63,22 @@ public class PlanB : MonoBehaviour
             // Convert Poisson point into world position centered around Avoider
             Vector3 poissonPoint = transform.position + new Vector3(point.x - size_x / 2f, 0, point.y - size_y / 2f);
 
-            if (!CheckVisibility(poissonPoint)) // good hiding spot
+            // Check if the spot is on the NavMesh and reachable
+            NavMeshPath path = new NavMeshPath();
+            if (!agent.CalculatePath(poissonPoint, path) || path.status != NavMeshPathStatus.PathComplete)
+            {
+                if (visibleGizmos)
+                    Debug.DrawLine(avoidee.position, poissonPoint, Color.gray, 1f); // unreachable point
+                continue; // skip this point
+            }
+
+            // Check visibility (if avoidee can see it, it's not a good hiding spot)
+            if (!CheckVisibility(poissonPoint))
             {
                 candidateSpots.Add(poissonPoint);
 
                 if (visibleGizmos)
-                {
                     Debug.DrawLine(avoidee.position, poissonPoint, Color.green, 1f);
-                }
-
             }
             else if (visibleGizmos)
             {
@@ -81,7 +88,7 @@ public class PlanB : MonoBehaviour
 
         if (candidateSpots.Count > 0)
         {
-            // Pick the closest spot to the Avoider
+            // Pick the closest valid spot
             Vector3 closest = candidateSpots[0];
             float minDist = Vector3.Distance(transform.position, closest);
 
@@ -95,13 +102,14 @@ public class PlanB : MonoBehaviour
                 }
             }
 
-            agent.SetDestination(closest);
+            if (Vector3.Distance(transform.position, closest) > agent.stoppingDistance + 0.1f)
+            {
+                agent.SetDestination(closest);
+            }
         }
     }
 
-    /// <summary>
-    /// Checks if the avoidee can see a given point
-    /// </summary>
+    // Checks if the avoidee can see a given point
     public bool CheckVisibility(Vector3 point)
     {
         Vector3 dirToPoint = (point - avoidee.position).normalized;
@@ -112,19 +120,15 @@ public class PlanB : MonoBehaviour
         {
             if (hit.collider.transform != this.transform && hit.collider.transform != avoidee)
             {
-                return false; // blocked to not visible
+                return false;
             }
-
-            /* if (hit.collider.transform == wall || hit.collider.transform == wall2)
-             {
-                 Debug.Log("wall hit");
-                 return false; // blocked to not visible
-             }*/
-
+            else if (hit.collider.transform == avoidee)
+            {
+                return false;
+            }
         }
 
-       // Debug.Log("wall not hit");
-        return true; // nothing blocked to visible
+        return true;
     }
 
     void OnDrawGizmos()

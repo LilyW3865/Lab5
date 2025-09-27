@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class PoissonDiscSampler
@@ -8,15 +7,10 @@ public class PoissonDiscSampler
 
     private readonly Rect rect;
     private readonly float radius2;  // radius squared
-    private readonly float cellSize;
+    public readonly float cellSize;
     private Vector2[,] grid;
     private List<Vector2> activeSamples = new List<Vector2>();
 
-    /// Create a sampler with the following parameters:
-    ///
-    /// width:  each sample's x coordinate will be between [0, width]
-    /// height: each sample's y coordinate will be between [0, height]
-    /// radius: each sample will be at least `radius` units away from any other sample, and at most 2 * `radius`.
     public PoissonDiscSampler(float width, float height, float radius)
     {
         rect = new Rect(0, 0, width, height);
@@ -26,8 +20,6 @@ public class PoissonDiscSampler
                            Mathf.CeilToInt(height / cellSize)];
     }
 
-    /// Return a lazy sequence of samples. You typically want to call this in a foreach loop, like so:
-    ///   foreach (Vector2 sample in sampler.Samples()) { ... }
     public IEnumerable<Vector2> Samples()
     {
         // First sample is choosen randomly
@@ -91,9 +83,6 @@ public class PoissonDiscSampler
 
         return true;
 
-        // Note: we use the zero vector to denote an unfilled cell in the grid. This means that if we were
-        // to randomly pick (0, 0) as a sample, it would be ignored for the purposes of proximity-testing
-        // and we might end up with another sample too close from (0, 0). This is a very minor issue.
     }
 
     /// Adds the sample to the active samples queue and the grid before returning it
