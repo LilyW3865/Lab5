@@ -8,7 +8,7 @@ public class PlanB : MonoBehaviour
     public NavMeshAgent agent;
     public Transform avoidee;
     public Transform wall;
-    public Transform wall1;
+    public Transform wall2;
 
 
     public float avoidanceRange;
