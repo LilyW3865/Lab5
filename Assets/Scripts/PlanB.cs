@@ -7,6 +7,9 @@ public class PlanB : MonoBehaviour
 {
     public NavMeshAgent agent;
     public Transform avoidee;
+    public Transform wall;
+    public Transform wall1;
+
 
     public float avoidanceRange;
     public float speed;
@@ -111,8 +114,16 @@ public class PlanB : MonoBehaviour
             {
                 return false; // blocked to not visible
             }
+
+            /* if (hit.collider.transform == wall || hit.collider.transform == wall2)
+             {
+                 Debug.Log("wall hit");
+                 return false; // blocked to not visible
+             }*/
+
         }
 
+       // Debug.Log("wall not hit");
         return true; // nothing blocked to visible
     }
 
