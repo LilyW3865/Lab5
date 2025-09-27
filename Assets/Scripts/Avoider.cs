@@ -5,10 +5,8 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public class Avoider : MonoBehaviour
 {
-    public NavMeshAgent agent;
+    public NavMeshAgent avoiderAgent;
     public Transform avoidee;
-    //public Transform wall;
-    //public Transform wall2;
 
     public float avoidanceRange;
     public float speed;
@@ -18,18 +16,18 @@ public class Avoider : MonoBehaviour
     private float size_y = 10f;
     private float cellSize = 20f;
 
-    private List<Vector3> candidateSpots = new List<Vector3>();
+    private List<Vector3> hidingSpots = new List<Vector3>();
 
     void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
+        avoiderAgent = GetComponent<NavMeshAgent>();
     }
 
     void Update()
     {
         if (avoidee == null) return;
 
-        if (agent == null)
+        if (avoiderAgent == null)
         {
             Debug.LogWarning("You NEED to make the object a NavMesh Agent and bake a NavMesh");
         }
@@ -49,13 +47,13 @@ public class Avoider : MonoBehaviour
         {
             avoidanceRange = 0;
         }
-        agent.speed = speed;
+        avoiderAgent.speed = speed;
     }
 
     // Find a hiding spot using Poisson-disc sampling
     public void FindASpot()
     {
-        candidateSpots.Clear();
+        hidingSpots.Clear();
         var sampler = new PoissonDiscSampler(size_x, size_y, cellSize);
 
         foreach (var point in sampler.Samples())
@@ -65,7 +63,7 @@ public class Avoider : MonoBehaviour
 
             // Check if the spot is on the NavMesh and reachable
             NavMeshPath path = new NavMeshPath();
-            if (!agent.CalculatePath(poissonPoint, path) || path.status != NavMeshPathStatus.PathComplete)
+            if (!avoiderAgent.CalculatePath(poissonPoint, path) || path.status != NavMeshPathStatus.PathComplete)
             {
                 if (visibleGizmos)
                     Debug.DrawLine(avoidee.position, poissonPoint, Color.gray, 1f); // unreachable point
@@ -75,7 +73,7 @@ public class Avoider : MonoBehaviour
             // Check visibility (if avoidee can see it, it's not a good hiding spot)
             if (!CheckVisibility(poissonPoint))
             {
-                candidateSpots.Add(poissonPoint);
+                hidingSpots.Add(poissonPoint);
 
                 if (visibleGizmos)
                     Debug.DrawLine(avoidee.position, poissonPoint, Color.green, 1f);
@@ -86,13 +84,13 @@ public class Avoider : MonoBehaviour
             }
         }
 
-        if (candidateSpots.Count > 0)
+        if (hidingSpots.Count > 0)
         {
             // Pick the closest valid spot
-            Vector3 closest = candidateSpots[0];
+            Vector3 closest = hidingSpots[0];
             float minDist = Vector3.Distance(transform.position, closest);
 
-            foreach (var spot in candidateSpots)
+            foreach (var spot in hidingSpots)
             {
                 float d = Vector3.Distance(transform.position, spot);
                 if (d < minDist)
@@ -102,9 +100,9 @@ public class Avoider : MonoBehaviour
                 }
             }
 
-            if (Vector3.Distance(transform.position, closest) > agent.stoppingDistance + 0.1f)
+            if (Vector3.Distance(transform.position, closest) > avoiderAgent.stoppingDistance + 0.1f)
             {
-                agent.SetDestination(closest);
+                avoiderAgent.SetDestination(closest);
             }
         }
     }

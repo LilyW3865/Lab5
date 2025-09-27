@@ -533,7 +533,7 @@ NavMeshAgent:
   m_AutoRepath: 1
   m_Height: 2
   m_BaseOffset: 1
-  m_WalkableMask: 4294967295
+  m_WalkableMask: 1
   m_ObstacleAvoidanceType: 4
 --- !u!54 &281803379
 Rigidbody:
@@ -574,7 +574,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 537717089c98b4b4cbe70383b936faee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Avoider
-  agent: {fileID: 281803377}
+  avoiderAgent: {fileID: 281803377}
   avoidee: {fileID: 1052603253}
   avoidanceRange: 10
   speed: 2
